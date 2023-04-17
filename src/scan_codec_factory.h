@@ -17,7 +17,7 @@ template<typename ScanProcess>
 class scan_codec_factory final
 {
 public:
-    std::unique_ptr<ScanProcess> create_codec(const frame_info& frame, const coding_parameters& parameters,
+    std::unique_ptr<ScanProcess> create_codec(const frame_info& frame_info, const coding_parameters& parameters,
                                            const jpegls_pc_parameters& preset_coding_parameters);
 
 private:
