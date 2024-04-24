@@ -237,7 +237,7 @@ public:
     TEST_METHOD(destination_size_for_small_image_with_custom_stride) // NOLINT
     {
         const auto source{read_file("8bit-monochrome-2x2.jls")};
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
 
         constexpr uint32_t stride{4};
         const size_t destination_size{decoder.destination_size(stride)};
@@ -250,7 +250,7 @@ public:
     TEST_METHOD(decode_reference_file_from_buffer) // NOLINT
     {
         const auto source{read_file("DataFiles/t8c0e0.jls")};
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
 
         vector<byte> destination(decoder.destination_size());
         decoder.decode(destination);
@@ -270,7 +270,7 @@ public:
         auto source{read_file("DataFiles/t8c0e0.jls")};
         insert_pc_parameters_segments(source, 3);
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
 
         vector<byte> destination(decoder.destination_size());
         decoder.decode(destination);
@@ -294,7 +294,7 @@ public:
         writer.write_byte(byte{0x80});
         writer.write_start_of_scan_segment(1, 2, 0, interleave_mode::sample);
 
-        const jpegls_decoder decoder(writer.buffer, true);
+        jpegls_decoder decoder(writer.buffer, true);
         std::vector<byte> destination(decoder.destination_size());
 
         assert_expect_exception(jpegls_errc::parameter_value_not_supported,
@@ -304,7 +304,7 @@ public:
     TEST_METHOD(decode_with_destination_as_return) // NOLINT
     {
         const auto source{read_file("DataFiles/t8c0e0.jls")};
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         const auto destination{decoder.decode<vector<byte>>()};
 
         portable_anymap_file reference_file{
@@ -320,7 +320,7 @@ public:
     TEST_METHOD(decode_with_16_bit_destination_as_return) // NOLINT
     {
         const auto source{read_file("DataFiles/t8c0e0.jls")};
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         const auto destination{decoder.decode<vector<uint16_t>>()};
 
         portable_anymap_file reference_file{
@@ -336,7 +336,7 @@ public:
 
     TEST_METHOD(decode_without_reading_header_throws) // NOLINT
     {
-        const jpegls_decoder decoder;
+        jpegls_decoder decoder;
 
         vector<byte> buffer(1000);
         assert_expect_exception(jpegls_errc::invalid_operation, [&decoder, &buffer] { decoder.decode(buffer); });
@@ -366,7 +366,7 @@ public:
     {
         const auto source{read_file("DataFiles/t8c0e0.jls")};
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         vector<byte> destination(decoder.destination_size());
 
         constexpr uint32_t correct_stride{256};
@@ -379,7 +379,7 @@ public:
     {
         const auto source{read_file("DataFiles/t8c2e0.jls")};
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         vector<byte> destination(decoder.destination_size());
 
         constexpr uint32_t correct_stride{256 * 3};
@@ -392,7 +392,7 @@ public:
     {
         const auto source{read_file("DataFiles/t8c0e0.jls")};
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         vector<byte> destination(decoder.destination_size());
         const uint32_t standard_stride{decoder.frame_info().width};
         decoder.decode(destination, standard_stride);
@@ -405,7 +405,7 @@ public:
     {
         const auto source{read_file("DataFiles/t8c2e0.jls")};
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         vector<byte> destination(decoder.destination_size());
         const uint32_t standard_stride{decoder.frame_info().width * 3};
         decoder.decode(destination, standard_stride);
@@ -419,7 +419,7 @@ public:
         constexpr uint32_t custom_stride{256 + 1};
         const auto source{read_file("DataFiles/t8c0e0.jls")};
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         vector<byte> destination(decoder.destination_size(custom_stride));
         decoder.decode(destination, custom_stride);
 
@@ -432,7 +432,7 @@ public:
         constexpr uint32_t custom_stride{256 * 3 + 1};
         const auto source{read_file("DataFiles/t8c2e0.jls")};
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         vector<byte> destination(decoder.destination_size(custom_stride));
         decoder.decode(destination, custom_stride);
 
@@ -557,7 +557,7 @@ public:
 
         const auto encoded{jpegls_encoder::encode(source_to_encode, frame_info)};
 
-        const jpegls_decoder decoder{encoded, true};
+        jpegls_decoder decoder{encoded, true};
         vector<byte> destination(decoder.destination_size());
         decoder.decode(destination);
 
@@ -602,7 +602,7 @@ public:
     {
         const auto source{read_file("ff_in_entropy_data.jls")};
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
 
         const auto& frame_info{decoder.frame_info()};
         Assert::AreEqual(1, frame_info.component_count);
@@ -628,7 +628,7 @@ public:
             // that can be checked with address sanitizer.
             const vector source(encoded.cbegin(), encoded.cend() - 1);
 
-            const jpegls_decoder decoder{source, true};
+            jpegls_decoder decoder{source, true};
             vector<byte> destination(decoder.destination_size());
             assert_expect_exception(jpegls_errc::source_buffer_too_small,
                                     [&decoder, &destination] { decoder.decode(destination); });
@@ -636,7 +636,7 @@ public:
 
         {
             const vector source(encoded.cbegin(), encoded.cend() - 2);
-            const jpegls_decoder decoder{source, true};
+            jpegls_decoder decoder{source, true};
             vector<byte> destination(decoder.destination_size());
 
             assert_expect_exception(jpegls_errc::source_buffer_too_small,
@@ -646,7 +646,7 @@ public:
         {
             auto source(encoded);
             source[source.size() - 1] = byte{0x33};
-            const jpegls_decoder decoder{source, true};
+            jpegls_decoder decoder{source, true};
             vector<byte> destination(decoder.destination_size());
 
             assert_expect_exception(jpegls_errc::end_of_image_marker_not_found,
@@ -658,7 +658,7 @@ public:
     {
         const auto source{read_file("fuzzy_input_golomb_16.jls")};
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
 
         const auto& frame_info{decoder.frame_info()};
         Assert::AreEqual(3, frame_info.component_count);
@@ -676,7 +676,7 @@ public:
     {
         const auto source{read_file("DataFiles/no_start_byte_after_encoded_scan.jls")};
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
 
         const auto& frame_info{decoder.frame_info()};
         Assert::AreEqual(3, frame_info.component_count);
@@ -700,7 +700,7 @@ public:
         const auto it{source.begin() + 2};
         source.insert(it, stream_writer.buffer.cbegin(), stream_writer.buffer.cend());
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         vector<byte> destination(decoder.destination_size());
 
         assert_expect_exception(jpegls_errc::restart_marker_not_found,
@@ -717,7 +717,7 @@ public:
         ++it;
         *it = byte{0xD1};
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         vector<byte> destination(decoder.destination_size());
 
         assert_expect_exception(jpegls_errc::restart_marker_not_found,
@@ -735,7 +735,7 @@ public:
                                           byte{0xFF}, byte{0xFF}, byte{0xFF}};
         source.insert(it, extra_begin_bytes.cbegin(), extra_begin_bytes.cend());
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         portable_anymap_file reference_file{
             read_anymap_reference_file("DataFiles/test8.ppm", decoder.interleave_mode(), decoder.frame_info())};
 
@@ -753,7 +753,7 @@ public:
         // that can be checked with address sanitizer.
         const vector too_small_source(source.begin(), it);
 
-        const jpegls_decoder decoder{too_small_source, true};
+        jpegls_decoder decoder{too_small_source, true};
         vector<byte> destination(decoder.destination_size());
 
         assert_expect_exception(jpegls_errc::source_buffer_too_small,
@@ -1112,7 +1112,7 @@ private:
     {
         const auto source{read_file(image_filename)};
 
-        const jpegls_decoder decoder{source, true};
+        jpegls_decoder decoder{source, true};
         vector<byte> destination(decoder.destination_size(stride) - 1);
 
         assert_expect_exception(jpegls_errc::destination_buffer_too_small,

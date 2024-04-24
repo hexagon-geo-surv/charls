@@ -315,7 +315,7 @@ public:
     jpegls_decoder& source(CHARLS_IN_READS_BYTES(source_size_bytes) const void* source_buffer,
                            const size_t source_size_bytes)
     {
-        check_jpegls_errc(charls_jpegls_decoder_set_source_buffer(decoder_.get(), source_buffer, source_size_bytes));
+        check_jpegls_errc(charls_jpegls_decoder_set_source_buffer(decoder(), source_buffer, source_size_bytes));
         return *this;
     }
 
@@ -360,7 +360,7 @@ public:
     bool read_spiff_header(std::error_code& ec) noexcept
     {
         int32_t found;
-        ec = charls_jpegls_decoder_read_spiff_header(decoder_.get(), &spiff_header_, &found);
+        ec = charls_jpegls_decoder_read_spiff_header(decoder(), &spiff_header_, &found);
         spiff_header_has_value_ = found != 0;
         return spiff_header_has_value_;
     }
@@ -386,7 +386,7 @@ public:
     /// <param name="ec">The out-parameter for error reporting.</param>
     jpegls_decoder& read_header(CHARLS_OUT std::error_code& ec) noexcept
     {
-        ec = charls_jpegls_decoder_read_header(decoder_.get());
+        ec = charls_jpegls_decoder_read_header(decoder());
         if (ec == jpegls_errc::success)
         {
             ec = charls_jpegls_decoder_get_frame_info(decoder_.get(), &frame_info_);
@@ -462,7 +462,7 @@ public:
     int32_t near_lossless(const int32_t component = 0) const
     {
         int32_t near_lossless;
-        check_jpegls_errc(charls_jpegls_decoder_get_near_lossless(decoder_.get(), component, &near_lossless));
+        check_jpegls_errc(charls_jpegls_decoder_get_near_lossless(decoder(), component, &near_lossless));
         return near_lossless;
     }
 
@@ -475,7 +475,7 @@ public:
     charls::interleave_mode interleave_mode() const
     {
         charls::interleave_mode interleave_mode;
-        check_jpegls_errc(charls_jpegls_decoder_get_interleave_mode(decoder_.get(), &interleave_mode));
+        check_jpegls_errc(charls_jpegls_decoder_get_interleave_mode(decoder(), &interleave_mode));
         return interleave_mode;
     }
 
@@ -488,7 +488,7 @@ public:
     jpegls_pc_parameters preset_coding_parameters() const
     {
         jpegls_pc_parameters preset_coding_parameters;
-        check_jpegls_errc(charls_jpegls_decoder_get_preset_coding_parameters(decoder_.get(), 0, &preset_coding_parameters));
+        check_jpegls_errc(charls_jpegls_decoder_get_preset_coding_parameters(decoder(), 0, &preset_coding_parameters));
         return preset_coding_parameters;
     }
 
@@ -501,7 +501,7 @@ public:
     charls::color_transformation color_transformation() const
     {
         charls::color_transformation color_transformation;
-        check_jpegls_errc(charls_jpegls_decoder_get_color_transformation(decoder_.get(), &color_transformation));
+        check_jpegls_errc(charls_jpegls_decoder_get_color_transformation(decoder(), &color_transformation));
         return color_transformation;
     }
 
@@ -516,7 +516,7 @@ public:
     size_t destination_size(const uint32_t stride = 0) const
     {
         size_t size_in_bytes;
-        check_jpegls_errc(charls_jpegls_decoder_get_destination_size(decoder_.get(), stride, &size_in_bytes));
+        check_jpegls_errc(charls_jpegls_decoder_get_destination_size(decoder(), stride, &size_in_bytes));
         return size_in_bytes;
     }
 
@@ -531,10 +531,10 @@ public:
     /// <exception cref="charls::jpegls_error">An error occurred during the operation.</exception>
     CHARLS_ATTRIBUTE_ACCESS((access(write_only, 2, 3)))
     void decode(CHARLS_OUT_WRITES_BYTES(destination_size_bytes) void* destination_buffer,
-                const size_t destination_size_bytes, const uint32_t stride = 0) const
+                const size_t destination_size_bytes, const uint32_t stride = 0)
     {
         check_jpegls_errc(
-            charls_jpegls_decoder_decode_to_buffer(decoder_.get(), destination_buffer, destination_size_bytes, stride));
+            charls_jpegls_decoder_decode_to_buffer(decoder(), destination_buffer, destination_size_bytes, stride));
     }
 
     /// <summary>
@@ -546,7 +546,7 @@ public:
     /// <param name="stride">Number of bytes to the next line in the buffer, when zero, decoder will compute it.</param>
     /// <exception cref="charls::jpegls_error">An error occurred during the operation.</exception>
     template<typename Container, typename ContainerValueType = typename Container::value_type>
-    void decode(CHARLS_OUT Container& destination_container, const uint32_t stride = 0) const
+    void decode(CHARLS_OUT Container& destination_container, const uint32_t stride = 0)
     {
         decode(destination_container.data(), destination_container.size() * sizeof(ContainerValueType), stride);
     }
@@ -559,7 +559,7 @@ public:
     /// <returns>Container with the decoded data.</returns>
     template<typename Container, typename ContainerValueType = typename Container::value_type>
     [[nodiscard]]
-    Container decode(const uint32_t stride = 0) const
+    Container decode(const uint32_t stride = 0)
     {
         Container destination(destination_size() / sizeof(ContainerValueType));
 
@@ -581,7 +581,7 @@ public:
     {
         comment_handler_ = std::move(comment_handler);
         check_jpegls_errc(
-            charls_jpegls_decoder_at_comment(decoder_.get(), comment_handler_ ? &at_comment_callback : nullptr, this));
+            charls_jpegls_decoder_at_comment(decoder(), comment_handler_ ? &at_comment_callback : nullptr, this));
         return *this;
     }
 
@@ -600,7 +600,7 @@ public:
     {
         application_data_handler_ = std::move(application_data_handler);
         check_jpegls_errc(charls_jpegls_decoder_at_application_data(
-            decoder_.get(), application_data_handler_ ? &at_application_data_callback : nullptr, this));
+            decoder(), application_data_handler_ ? &at_application_data_callback : nullptr, this));
         return *this;
     }
 
@@ -618,6 +618,18 @@ private:
     static void destroy_decoder(CHARLS_IN_OPT const charls_jpegls_decoder* decoder) noexcept
     {
         charls_jpegls_decoder_destroy(decoder);
+    }
+
+    [[nodiscard]]
+    charls_jpegls_decoder* decoder() noexcept
+    {
+        return decoder_.get();
+    }
+
+    [[nodiscard]]
+    const charls_jpegls_decoder* decoder() const noexcept
+    {
+        return decoder_.get();
     }
 
     static int32_t CHARLS_API_CALLING_CONVENTION at_comment_callback(const void* data, const size_t size,
